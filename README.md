@@ -20,13 +20,13 @@ A lightweight command-line tool for text analysis created with C++, providing ba
 1. Clone the repository
 2. Create a build directory:
 
-mkdir build cd build
+`mkdir build cd build`
 
 ### Generate the build files:
-cmake ..
+`cmake ..`
 
 ### Build the project:
-cmake --build .
+`cmake --build .`
 
 ## Usage
 After building the project, you can run the executable:
