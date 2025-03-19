@@ -13,6 +13,7 @@ public:
     bool loadFile(const std::string& filename);
     void showConcordance(const std::string& word, int context);
     void showFrequencies(int limit = 0);
+    void showWordFrequency(const std::string& word); // New function
     void showNGrams(int n);
     
 private:

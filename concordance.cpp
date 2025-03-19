@@ -165,3 +165,19 @@ bool ConcordanceAnalyzer::isAlphanumeric(char c) {
     unsigned char uc = static_cast<unsigned char>(c);
     return std::isalnum(uc) || c == '\'' || c == '-';
 }
+
+
+void ConcordanceAnalyzer::showWordFrequency(const std::string& word) {
+    if (wordFrequencies.empty()) {
+        std::cout << "No text loaded. Use 'load' command first.\n";
+        return;
+    }
+    
+    std::string searchWord = toLowerCase(word);
+    
+    if (wordFrequencies.find(searchWord) != wordFrequencies.end()) {
+        std::cout << searchWord << " " << wordFrequencies[searchWord] << "\n";
+    } else {
+        std::cout << searchWord << " 0\n";
+    }
+}
