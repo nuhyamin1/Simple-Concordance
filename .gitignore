@@ -63,3 +63,4 @@ Makefile
 ehthumbs.db
 Thumbs.db
 test.txt
+*.txt
