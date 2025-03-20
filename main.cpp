@@ -15,6 +15,7 @@ void printHelp() {
     std::cout << "  freq [n]              - Show word frequencies (optional: top n words)\n";
     std::cout << "  freq <word>           - Show frequency of a specific word\n";
     std::cout << "  ngram <n>             - Generate n-grams\n";
+    std::cout << "  sen <word>            - Show full sentences containing a word\n";
     std::cout << "  help                  - Show this help\n";
     std::cout << "  exit                  - Exit the program\n";
 }
@@ -71,6 +72,13 @@ int main() {
             int n = 2;
             iss >> n;
             analyzer.showNGrams(n);
+        } else if (command == "sen" || command == "sentence") {
+            std::string word;
+            if (iss >> word) {
+                analyzer.showSentence(word);
+            } else {
+                std::cout << "Usage: sen <word>\n";
+            }
         } else {
             std::cout << "Unknown command. Type 'help' for available commands.\n";
         }

@@ -11,19 +11,21 @@ public:
     ~ConcordanceAnalyzer();
     
     bool loadFile(const std::string& filename);
-    void showConcordance(const std::string& word, int context);
+    void showConcordance(const std::string& word, int context = 5);
     void showFrequencies(int limit = 0);
-    void showWordFrequency(const std::string& word); // New function
     void showNGrams(int n);
+    void showWordFrequency(const std::string& word);
+    void showSentence(const std::string& word);  // New method
     
 private:
-    std::vector<std::string> tokens;
-    std::map<std::string, int> wordFrequencies;
-    
     void tokenize(const std::string& text);
     void calculateFrequencies();
     std::string toLowerCase(const std::string& str);
     bool isAlphanumeric(char c);
+    
+    std::vector<std::string> tokens;
+    std::vector<std::string> sentences;  // New member to store sentences
+    std::map<std::string, int> wordFrequencies;
 };
 
 #endif // CONCORDANCE_H

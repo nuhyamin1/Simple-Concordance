@@ -28,21 +28,75 @@ bool ConcordanceAnalyzer::loadFile(const std::string& filename) {
     return true;
 }
 
+// Update the tokenize method to track sentences
 void ConcordanceAnalyzer::tokenize(const std::string& text) {
     tokens.clear();
+    sentences.clear();  // Clear sentences container
     std::string token;
+    std::string currentSentence;
     
     for (size_t i = 0; i < text.length(); i++) {
+        currentSentence += text[i];
+        
         if (isAlphanumeric(text[i])) {
             token += text[i];
-        } else if (!token.empty()) {
-            tokens.push_back(toLowerCase(token));
-            token.clear();
+        } else {
+            if (!token.empty()) {
+                tokens.push_back(toLowerCase(token));
+                token.clear();
+            }
+            
+            // Check for sentence endings
+            if (text[i] == '.' || text[i] == '!' || text[i] == '?') {
+                if (i + 1 < text.length() && (text[i+1] == ' ' || text[i+1] == '\n')) {
+                    sentences.push_back(currentSentence);
+                    currentSentence.clear();
+                }
+            }
         }
     }
     
     if (!token.empty()) {
         tokens.push_back(toLowerCase(token));
+    }
+    
+    if (!currentSentence.empty()) {
+        sentences.push_back(currentSentence);
+    }
+}
+
+// Add the showSentence method implementation
+void ConcordanceAnalyzer::showSentence(const std::string& word) {
+    std::string searchWord = toLowerCase(word);
+    
+    if (sentences.empty()) {
+        std::cout << "No text loaded. Use 'load' command first.\n";
+        return;
+    }
+    
+    bool found = false;
+    for (const auto& sentence : sentences) {
+        std::string lowerSentence = toLowerCase(sentence);
+        
+        // Check if the word appears as a whole word in the sentence
+        size_t pos = 0;
+        while ((pos = lowerSentence.find(searchWord, pos)) != std::string::npos) {
+            // Check if it's a whole word (surrounded by non-alphanumeric chars or at boundaries)
+            bool isWordStart = (pos == 0 || !isAlphanumeric(lowerSentence[pos-1]));
+            bool isWordEnd = (pos + searchWord.length() == lowerSentence.length() || 
+                             !isAlphanumeric(lowerSentence[pos + searchWord.length()]));
+            
+            if (isWordStart && isWordEnd) {
+                found = true;
+                std::cout << sentence << std::endl;
+                break;  // Only show each matching sentence once
+            }
+            pos += searchWord.length();
+        }
+    }
+    
+    if (!found) {
+        std::cout << "Word '" << word << "' not found in any sentence.\n";
     }
 }
 
@@ -180,4 +234,4 @@ void ConcordanceAnalyzer::showWordFrequency(const std::string& word) {
     } else {
         std::cout << searchWord << " 0\n";
     }
-}
+}  // Add this closing brace for showWordFrequency method
