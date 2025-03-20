@@ -15,7 +15,8 @@ public:
     void showFrequencies(int limit = 0);
     void showNGrams(int n);
     void showWordFrequency(const std::string& word);
-    void showSentence(const std::string& word);  // New method
+    void showSentence(const std::string& word);  // Add this method declaration
+    std::vector<std::string> tokenizePhrase(const std::string& phrase);  // Add this for phrase support
     
 private:
     void tokenize(const std::string& text);
@@ -24,7 +25,7 @@ private:
     bool isAlphanumeric(char c);
     
     std::vector<std::string> tokens;
-    std::vector<std::string> sentences;  // New member to store sentences
+    std::vector<std::string> sentences;  // Add this member variable
     std::map<std::string, int> wordFrequencies;
 };
 

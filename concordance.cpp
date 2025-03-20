@@ -66,8 +66,9 @@ void ConcordanceAnalyzer::tokenize(const std::string& text) {
 }
 
 // Add the showSentence method implementation
+// Fix the method implementation - change toLowerCase to toLowerCase
 void ConcordanceAnalyzer::showSentence(const std::string& word) {
-    std::string searchWord = toLowerCase(word);
+    std::string searchWord = toLowerCase(word);  // Fix method name
     
     if (sentences.empty()) {
         std::cout << "No text loaded. Use 'load' command first.\n";
@@ -75,16 +76,16 @@ void ConcordanceAnalyzer::showSentence(const std::string& word) {
     }
     
     bool found = false;
-    for (const auto& sentence : sentences) {
-        std::string lowerSentence = toLowerCase(sentence);
+    for (const auto& sentence : sentences) {  // Fix the range-based for loop syntax
+        std::string lowerSentence = toLowerCase(sentence);  // Fix method name
         
         // Check if the word appears as a whole word in the sentence
         size_t pos = 0;
         while ((pos = lowerSentence.find(searchWord, pos)) != std::string::npos) {
             // Check if it's a whole word (surrounded by non-alphanumeric chars or at boundaries)
-            bool isWordStart = (pos == 0 || !isAlphanumeric(lowerSentence[pos-1]));
+            bool isWordStart = (pos == 0 || !isAlphanumeric(lowerSentence[pos-1]));  // Fix method name
             bool isWordEnd = (pos + searchWord.length() == lowerSentence.length() || 
-                             !isAlphanumeric(lowerSentence[pos + searchWord.length()]));
+                             !isAlphanumeric(lowerSentence[pos + searchWord.length()]));  // Fix method name
             
             if (isWordStart && isWordEnd) {
                 found = true;
@@ -100,6 +101,19 @@ void ConcordanceAnalyzer::showSentence(const std::string& word) {
     }
 }
 
+// Add the tokenizePhrase method implementation
+std::vector<std::string> ConcordanceAnalyzer::tokenizePhrase(const std::string& phrase) {
+    std::vector<std::string> result;
+    std::istringstream iss(phrase);
+    std::string word;
+    
+    while (iss >> word) {
+        result.push_back(toLowerCase(word));
+    }
+    
+    return result;
+}
+
 void ConcordanceAnalyzer::calculateFrequencies() {
     wordFrequencies.clear();
     for (const auto& token : tokens) {
@@ -107,17 +121,25 @@ void ConcordanceAnalyzer::calculateFrequencies() {
     }
 }
 
-void ConcordanceAnalyzer::showConcordance(const std::string& word, int context) {
-    std::string searchWord = toLowerCase(word);
+void ConcordanceAnalyzer::showConcordance(const std::string& phrase, int context) {
+    std::vector<std::string> searchWords = tokenizePhrase(phrase);
     
-    if (tokens.empty()) {
-        std::cout << "No text loaded. Use 'load' command first.\n";
+    if (tokens.empty() || searchWords.empty()) {
+        std::cout << "No text loaded or invalid search phrase.\n";
         return;
     }
     
     bool found = false;
-    for (size_t i = 0; i < tokens.size(); i++) {
-        if (tokens[i] == searchWord) {
+    for (size_t i = 0; i <= tokens.size() - searchWords.size(); i++) {
+        bool match = true;
+        for (size_t j = 0; j < searchWords.size(); j++) {
+            if (tokens[i + j] != searchWords[j]) {
+                match = false;
+                break;
+            }
+        }
+        
+        if (match) {
             found = true;
             
             // Print left context
@@ -126,11 +148,16 @@ void ConcordanceAnalyzer::showConcordance(const std::string& word, int context) 
                 std::cout << tokens[j] << " ";
             }
             
-            // Print the keyword in uppercase
-            std::cout << "[" << searchWord << "] ";
+            // Print the phrase in brackets
+            std::cout << "[";
+            for (size_t j = 0; j < searchWords.size(); j++) {
+                std::cout << searchWords[j];
+                if (j < searchWords.size() - 1) std::cout << " ";
+            }
+            std::cout << "] ";
             
             // Print right context
-            for (size_t j = i + 1; j < std::min(tokens.size(), i + context + 1); j++) {
+            for (size_t j = i + searchWords.size(); j < std::min(tokens.size(), i + searchWords.size() + context); j++) {
                 std::cout << tokens[j] << " ";
             }
             std::cout << "...\n";
@@ -138,7 +165,7 @@ void ConcordanceAnalyzer::showConcordance(const std::string& word, int context) 
     }
     
     if (!found) {
-        std::cout << "Word '" << word << "' not found in the text.\n";
+        std::cout << "Phrase '" << phrase << "' not found in the text.\n";
     }
 }
 
@@ -221,17 +248,44 @@ bool ConcordanceAnalyzer::isAlphanumeric(char c) {
 }
 
 
-void ConcordanceAnalyzer::showWordFrequency(const std::string& word) {
-    if (wordFrequencies.empty()) {
+void ConcordanceAnalyzer::showWordFrequency(const std::string& phrase) {
+    if (wordFrequencies.empty() || tokens.empty()) {
         std::cout << "No text loaded. Use 'load' command first.\n";
         return;
     }
     
-    std::string searchWord = toLowerCase(word);
+    std::vector<std::string> searchWords = tokenizePhrase(phrase);
     
-    if (wordFrequencies.find(searchWord) != wordFrequencies.end()) {
-        std::cout << searchWord << " " << wordFrequencies[searchWord] << "\n";
-    } else {
-        std::cout << searchWord << " 0\n";
+    if (searchWords.empty()) {
+        std::cout << phrase << " 0\n";
+        return;
     }
-}  // Add this closing brace for showWordFrequency method
+    
+    // If it's a single word, use the existing frequency map
+    if (searchWords.size() == 1) {
+        std::string searchWord = searchWords[0];
+        if (wordFrequencies.find(searchWord) != wordFrequencies.end()) {
+            std::cout << searchWord << " " << wordFrequencies[searchWord] << "\n";
+        } else {
+            std::cout << searchWord << " 0\n";
+        }
+        return;
+    }
+    
+    // For multi-word phrases, count occurrences in the token stream
+    int count = 0;
+    for (size_t i = 0; i <= tokens.size() - searchWords.size(); i++) {
+        bool match = true;
+        for (size_t j = 0; j < searchWords.size(); j++) {
+            if (tokens[i + j] != searchWords[j]) {
+                match = false;
+                break;
+            }
+        }
+        if (match) {
+            count++;
+        }
+    }
+    
+    std::cout << phrase << " " << count << "\n";
+}

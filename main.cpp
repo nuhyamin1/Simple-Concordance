@@ -11,11 +11,11 @@ void printHelp() {
     std::cout << "Simple Concordance Tool\n";
     std::cout << "Commands:\n";
     std::cout << "  load <filename>       - Load a text file\n";
-    std::cout << "  kwic <word> <context> - Find keyword in context\n";
+    std::cout << "  kwic <phrase> [context] - Find keyword in context\n";
     std::cout << "  freq [n]              - Show word frequencies (optional: top n words)\n";
-    std::cout << "  freq <word>           - Show frequency of a specific word\n";
+    std::cout << "  freq <phrase>         - Show frequency of a specific word or phrase\n";
     std::cout << "  ngram <n>             - Generate n-grams\n";
-    std::cout << "  sen <word>            - Show full sentences containing a word\n";
+    std::cout << "  sen <phrase>          - Show full sentences containing a word or phrase\n";
     std::cout << "  help                  - Show this help\n";
     std::cout << "  exit                  - Exit the program\n";
 }
@@ -48,36 +48,63 @@ int main() {
         } else if (command == "kwic") {
             std::string word;
             int context = 5;
-            iss >> word;
-            iss >> context;
-            analyzer.showConcordance(word, context);
-        } // In the main function, modify the freq command handling:
-        else if (command == "freq") {
+            
+            // Read the entire phrase until we encounter a number or end of line
+            std::string phrase;
+            std::string token;
+            while (iss >> token) {
+                // Check if token is a number (context size)
+                if (std::all_of(token.begin(), token.end(), ::isdigit)) {
+                    context = std::stoi(token);
+                    break;
+                }
+                if (!phrase.empty()) phrase += " ";
+                phrase += token;
+            }
+            
+            if (!phrase.empty()) {
+                analyzer.showConcordance(phrase, context);
+            } else {
+                std::cout << "Usage: kwic <phrase> [context]\n";
+            }
+        } else if (command == "freq") {
             int limit = 0;
             std::string word;
-            if (iss >> word) {
-                // Check if the parameter is a number or a word
-                if (std::all_of(word.begin(), word.end(), ::isdigit)) {
-                    limit = std::stoi(word);
-                    analyzer.showFrequencies(limit);
-                } else {
-                    // It's a word, show its frequency
-                    analyzer.showWordFrequency(word);
-                }
-            } else {
+            
+            // Read the entire input after "freq"
+            std::string restOfLine;
+            std::getline(iss, restOfLine);
+            
+            // Trim leading whitespace
+            restOfLine.erase(0, restOfLine.find_first_not_of(" \t"));
+            
+            if (restOfLine.empty()) {
                 // No parameter, show all frequencies
                 analyzer.showFrequencies();
+            } else if (std::all_of(restOfLine.begin(), restOfLine.end(), ::isdigit)) {
+                // It's a number, show top N frequencies
+                limit = std::stoi(restOfLine);
+                analyzer.showFrequencies(limit);
+            } else {
+                // It's a phrase, show its frequency
+                analyzer.showWordFrequency(restOfLine);
             }
         } else if (command == "ngram") {
             int n = 2;
             iss >> n;
             analyzer.showNGrams(n);
         } else if (command == "sen" || command == "sentence") {
-            std::string word;
-            if (iss >> word) {
-                analyzer.showSentence(word);
+            // Read the entire phrase
+            std::string phrase;
+            std::getline(iss, phrase);
+            
+            // Trim leading whitespace
+            phrase.erase(0, phrase.find_first_not_of(" \t"));
+            
+            if (!phrase.empty()) {
+                analyzer.showSentence(phrase);
             } else {
-                std::cout << "Usage: sen <word>\n";
+                std::cout << "Usage: sen <word or phrase>\n";
             }
         } else {
             std::cout << "Unknown command. Type 'help' for available commands.\n";
